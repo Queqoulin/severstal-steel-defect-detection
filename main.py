@@ -71,14 +71,3 @@ def process_input():
 
 if __name__ == '__main__':
     train_tensor = process_input()
-
-
-
-
-
-
-
-
-
-
-
