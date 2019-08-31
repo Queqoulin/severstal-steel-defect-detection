@@ -4,8 +4,10 @@ from six import string_types
 
 from skimage import io
 # from skimage import novice
+import argparse
 
 import numpy as np
+import pickle
 
 
 def rle2mask(rle_str, height, width, defect_class):
@@ -22,11 +24,11 @@ def rle2mask(rle_str, height, width, defect_class):
 
 
 # process input data
-def process_input():
-    train_info = pd.read_csv('train.csv', sep=',')
+def process_input(in_folder, in_csv, out):
+    train_info = pd.read_csv(in_csv, sep=',')
     train_info[['ImageId', 'ClassId']] = train_info['ImageId_ClassId'].str.split('_', expand=True)
     train_info = train_info.drop(['ImageId_ClassId'], axis=1)
-    train_im_path = os.path.join(os.getcwd(), 'train_images')
+    train_im_path = in_folder
 
     imname_list = [f for f in os.listdir(train_im_path)
                    if os.path.isfile(os.path.join(train_im_path, f))]
@@ -66,8 +68,22 @@ def process_input():
         if defect_class == defect_class_ids[-1]:
             res_tensor[f].append(cur_mask)
 
+    # write
+    with open(out, 'wb') as f_out:
+        pickle.dump(res_tensor, f_out)
+
     return res_tensor
 
 
 if __name__ == '__main__':
-    train_tensor = process_input()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", dest="in_fname", help="path to train_image/ and train.csv", nargs=2)
+    parser.add_argument("-o", dest="out_fname", help="pth to the output file")
+    args = parser.parse_args()
+
+    col = args.in_fname
+    in_folder = col[0]
+    in_csv = col[1]
+    out = args.out_fname
+
+    train_tensor = process_input(in_folder, in_csv, out)
